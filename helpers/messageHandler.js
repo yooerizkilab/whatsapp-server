@@ -1,5 +1,6 @@
 const { delay } = require('@whiskeysockets/baileys');
 const queueHandler = require('./queueHandler');
+const messageTracker = require('./TrackerHandler');
 
 /**
  * Send a text message to a recipient
@@ -16,6 +17,17 @@ const sendTextMessage = async (socket, recipient, message, options = {}) => {
       recipient = `${recipient}@s.whatsapp.net`;
     }
 
+    // Check for duplicate message
+    const sessionId = options.sessionId || 'default';
+    if (!options.skipDuplicateCheck && 
+        messageTracker.isDuplicateMessage(sessionId, recipient, 'text', message)) {
+      console.log(`Skipping duplicate text message to ${recipient}`);
+      return {
+        status: true,
+        message: 'Duplicate message skipped',
+        skipped: true
+      };
+    }
     // Add message to queue
     const queueId = options.sessionId || 'default';
     if (options.useQueue !== false) {
@@ -59,6 +71,8 @@ const sendTextMessage = async (socket, recipient, message, options = {}) => {
       await delay(options.delay);
     }
 
+    messageTracker.recordMessage(sessionId, recipient, 'text', message);
+  
     return {
       status: true,
       message: 'Message sent successfully',
@@ -66,6 +80,7 @@ const sendTextMessage = async (socket, recipient, message, options = {}) => {
       recipient,
       content: message
     };
+
   } catch (error) {
     console.error('Error sending text message:', error);
     

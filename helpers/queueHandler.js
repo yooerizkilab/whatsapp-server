@@ -129,6 +129,50 @@ const processNextInQueue = async (queueId, socket) => {
   
   // Get next message from queue
   const message = queueData.items.shift();
+
+    // Add message ID tracking
+    const messageId = `${message.type}-${message.recipient}-${Date.now()}`;
+    // Track failed attempts for media messages
+    const mediaFailures = new Map();
+    
+    // Check if this message was recently sent (deduplication)
+    if (queueData.recentlySent && queueData.recentlySent.includes(messageId)) {
+      console.log(`Skipping duplicate message: ${messageId}`);
+      saveQueue(queueId, queueData);
+      return true;
+    }
+    
+    // Add to recently sent list
+    if (!queueData.recentlySent) {
+      queueData.recentlySent = [];
+    }
+    queueData.recentlySent.push(messageId);
+    
+    // Keep recently sent list at a reasonable size
+    if (queueData.recentlySent.length > 100) {
+      queueData.recentlySent = queueData.recentlySent.slice(-100);
+    }
+
+    // In the processNextInQueue function, before retry logic:
+    if (message.type === 'image' || message.type === 'document' || message.type === 'audio') {
+      const mediaKey = `${message.type}-${message.recipient}-${message.content.substring(0, 50)}`;
+      
+      // Track failures
+      if (!mediaFailures.has(mediaKey)) {
+        mediaFailures.set(mediaKey, 1);
+      } else {
+        mediaFailures.set(mediaKey, mediaFailures.get(mediaKey) + 1);
+      }
+      
+      // If failed too many times, don't retry
+      if (mediaFailures.get(mediaKey) >= 3) {
+        console.log(`Media message ${mediaKey} failed too many times, not retrying`);
+        // Update queue stats without retrying
+        queueData.stats.failed++;
+        saveQueue(queueId, queueData);
+        return true;
+      }
+    }
   
   try {
     // Import handlers on-demand to avoid circular dependencies

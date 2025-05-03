@@ -5,6 +5,7 @@ const path = require('path');
 const axios = require('axios');
 const mime = require('mime-types');
 const queueHandler = require('./queueHandler');
+const messageTracker = require('./TrackerHandler');
 
 /**
  * Download file from URL or convert base64 to buffer
@@ -69,6 +70,18 @@ const sendImageMessage = async (socket, recipient, imageData, caption = '', opti
       if (!recipient.endsWith('@s.whatsapp.net')) {
         recipient = `${recipient}@s.whatsapp.net`;
       }
+
+      // Check for duplicate message
+      const sessionId = options.sessionId || 'default';
+      if (!options.skipDuplicateCheck && 
+          messageTracker.isDuplicateMessage(sessionId, recipient, 'image', imageData)) {
+        console.log(`Skipping duplicate image message to ${recipient}`);
+        return {
+          status: true,
+          message: 'Duplicate image message skipped',
+          skipped: true
+        };
+      }
   
       // Add message to queue
       const queueId = options.sessionId || 'default';
@@ -118,6 +131,10 @@ const sendImageMessage = async (socket, recipient, imageData, caption = '', opti
       if (options.delay && typeof options.delay === 'number') {
         await delay(options.delay);
       }
+
+      // After successfully sending the image, record it
+      // Add this right after the sentMsg = await socket.sendMessage(...) line:
+      messageTracker.recordMessage(sessionId, recipient, 'image', imageData);
   
       return {
         status: true,
@@ -126,7 +143,7 @@ const sendImageMessage = async (socket, recipient, imageData, caption = '', opti
         recipient,
         coordinates: { latitude, longitude },
         name,
-        address
+        address,
       };
     } catch (error) {
       console.error('Error sending location message:', error);

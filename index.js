@@ -16,6 +16,8 @@ const messageRoutes = require('./routes/message');
 const groupRoutes = require('./routes/group');
 const statusRoutes = require('./routes/status');
 const sessionRoutes = require('./routes/session');
+const callRoutes = require('./routes/call');
+const autoReplyRoutes = require('./routes/autoReplay');
 
 // Middleware
 app.use(cors());
@@ -36,8 +38,10 @@ const authMiddleware = require('./middleware/auth');
 // Routes
 app.use('/api/session', sessionRoutes);
 app.use('/api/message', authMiddleware, messageRoutes);
+app.use('/api/auto-reply', authMiddleware, autoReplyRoutes);
 app.use('/api/group', authMiddleware, groupRoutes);
 app.use('/api/status', authMiddleware, statusRoutes);
+app.use('/api/call', authMiddleware, callRoutes);
 
 // Base route
 app.get('/', (req, res) => {

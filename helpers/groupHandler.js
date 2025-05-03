@@ -155,6 +155,18 @@ const sendGroupMessage = async (socket, groupId, message, options = {}) => {
       groupId = `${groupId}@g.us`;
     }
 
+    // Check for duplicate message
+    const sessionId = options.sessionId || 'default';
+    if (!options.skipDuplicateCheck && 
+        messageTracker.isDuplicateMessage(sessionId, groupId, 'group-message', message)) {
+      console.log(`Skipping duplicate group message to ${groupId}`);
+      return {
+        status: true,
+        message: 'Duplicate group message skipped',
+        skipped: true
+      };
+    }
+
     // Add message to queue
     const queueId = options.sessionId || 'default';
     if (options.useQueue !== false) {
@@ -182,6 +194,9 @@ const sendGroupMessage = async (socket, groupId, message, options = {}) => {
       message,
       { ...options, useQueue: false }
     );
+
+    // After the message is sent, record it
+    messageTracker.recordMessage(sessionId, groupId, 'group-message', message);
 
     return {
       status: true,

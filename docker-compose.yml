@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  whatsapp-server:
+    build: .
+    container_name: whatsapp-rest-api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./sessions:/app/sessions # Simpan sesi WhatsApp secara persisten
+      - ./queue:/app/queue # Simpan antrean pesan per tenant
+    environment:
+      - TZ=Asia/Jakarta
+    restart: unless-stopped
