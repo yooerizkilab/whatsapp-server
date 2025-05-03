@@ -1,0 +1,26 @@
+{
+  "id": "promotion_may2025_1746275294083",
+  "sessionId": "user2",
+  "messageType": "text",
+  "totalRecipients": 2,
+  "processedCount": 2,
+  "successCount": 2,
+  "failedCount": 0,
+  "startTime": 1746275294084,
+  "endTime": 1746275297981,
+  "status": "completed",
+  "recipients": [
+    {
+      "number": "62895341341001",
+      "status": "success",
+      "sentAt": 1746275294414,
+      "error": null
+    },
+    {
+      "number": "6285852062899",
+      "status": "success",
+      "sentAt": 1746275297981,
+      "error": null
+    }
+  ]
+}

@@ -5,7 +5,7 @@ const path = require('path');
 const axios = require('axios');
 const mime = require('mime-types');
 const queueHandler = require('./queueHandler');
-const messageTracker = require('./TrackerHandler');
+const messageTracker = require('./trackerHandler');
 
 /**
  * Download file from URL or convert base64 to buffer

@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
+const setupSwaggerUI = require('./swagger');
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +19,7 @@ const statusRoutes = require('./routes/status');
 const sessionRoutes = require('./routes/session');
 const callRoutes = require('./routes/call');
 const autoReplyRoutes = require('./routes/autoReplay');
+const bulkMessageRoutes = require('./routes/bulk');
 
 // Middleware
 app.use(cors());
@@ -36,12 +38,14 @@ dirs.forEach(dir => {
 const authMiddleware = require('./middleware/auth');
 
 // Routes
+setupSwaggerUI(app);
 app.use('/api/session', sessionRoutes);
 app.use('/api/message', authMiddleware, messageRoutes);
 app.use('/api/auto-reply', authMiddleware, autoReplyRoutes);
 app.use('/api/group', authMiddleware, groupRoutes);
 app.use('/api/status', authMiddleware, statusRoutes);
 app.use('/api/call', authMiddleware, callRoutes);
+app.use('/api/bulk-message', authMiddleware, bulkMessageRoutes);
 
 // Base route
 app.get('/', (req, res) => {

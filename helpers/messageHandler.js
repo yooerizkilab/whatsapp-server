@@ -1,6 +1,6 @@
 const { delay } = require('@whiskeysockets/baileys');
 const queueHandler = require('./queueHandler');
-const messageTracker = require('./TrackerHandler');
+const messageTracker = require('./trackerHandler');
 
 /**
  * Send a text message to a recipient
