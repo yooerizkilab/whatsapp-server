@@ -1,10 +1,10 @@
 {
   "items": [],
   "processing": false,
-  "lastProcessed": 1746275298708,
+  "lastProcessed": 1746280276869,
   "stats": {
-    "total": 14,
-    "success": 11,
+    "total": 18,
+    "success": 15,
     "failed": 11
   },
   "recentlySent": [
@@ -27,6 +27,10 @@
     "text-62895341341001,6285646826475-1746247218145",
     "text-62895341341001@s.whatsapp.net-1746248068392",
     "text-62895341341001@s.whatsapp.net-1746275295097",
-    "text-6285852062899@s.whatsapp.net-1746275298441"
+    "text-6285852062899@s.whatsapp.net-1746275298441",
+    "text-62895341341001@s.whatsapp.net-1746280046893",
+    "text-6285852062899@s.whatsapp.net-1746280050437",
+    "text-62895341341001@s.whatsapp.net-1746280273562",
+    "text-6285852062899@s.whatsapp.net-1746280276868"
   ]
 }

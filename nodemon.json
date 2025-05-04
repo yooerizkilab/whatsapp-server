@@ -1,0 +1,19 @@
+{
+    "watch": ["index.js", "routes", "controller", "service", "helpers", "middleware"], 
+    "ignore": [
+        "node_modules",
+        "tmp",
+        "logs",
+        "sessions",
+        ".env",
+        "*.log",
+        "*.example",
+        "campaigns",
+        "uploads",
+        "queue",
+        "Dockerfile",
+        "docker-compose.yml"
+    ],
+    "ext": "js,json"
+  }
+  

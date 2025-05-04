@@ -117,7 +117,7 @@ const sendBulkMessage = async (socket, recipients, messageData, options = {}) =>
                 {
                   sessionId,
                   useQueue,
-                  skipDuplicateCheck: true, // Skip duplicate check for bulk
+                  // skipDuplicateCheck: true,
                   delay: 0 // No delay after individual message
                 }
               );
@@ -131,7 +131,7 @@ const sendBulkMessage = async (socket, recipients, messageData, options = {}) =>
                 {
                   sessionId,
                   useQueue,
-                  skipDuplicateCheck: true,
+                  // skipDuplicateCheck: true,
                   delay: 0
                 }
               );
@@ -162,7 +162,7 @@ const sendBulkMessage = async (socket, recipients, messageData, options = {}) =>
                 {
                   sessionId,
                   useQueue,
-                  skipDuplicateCheck: true,
+                  // skipDuplicateCheck: true,
                   delay: 0
                 }
               );
