@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bulk Message Sender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #25D366;
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .recipients-container {
+            position: relative;
+        }
+
+        .add-recipient-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .add-recipient-btn:hover {
+            background: #128C7E;
+        }
+
+        .recipient-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .recipient-row input {
+            flex: 1;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #ff3838;
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .preview {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .preview h3 {
+            color: #25D366;
+            margin-bottom: 15px;
+        }
+
+        .preview-message {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #25D366;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 WhatsApp Bulk Sender</h1>
+            <p>Kirim undangan pernikahan secara otomatis dengan personalisasi nama</p>
+        </div>
+
+        <div class="form-container">
+            <form id="bulkMessageForm">
+                <div class="form-group">
+                    <label for="apiKey">API Key:</label>
+                    <input type="password" id="apiKey" placeholder="Masukkan x-api-key Anda" required>
+                    <div class="help-text">API Key untuk autentikasi ke server WhatsApp</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="sessionId">Session ID:</label>
+                    <input type="text" id="sessionId" value="Bot1" required>
+                    <div class="help-text">ID sesi untuk bot WhatsApp</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Daftar Penerima:</label>
+                    <div id="recipientsContainer">
+                        <div class="recipient-row">
+                            <input type="text" placeholder="Nama (contoh: Mba Azza)" class="recipient-name" required>
+                            <input type="text" placeholder="Nomor HP (contoh: 62895341341001)" class="recipient-number" required>
+                            <button type="button" class="remove-btn" onclick="removeRecipient(this)">Hapus</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-recipient-btn" onclick="addRecipient()">+ Tambah Penerima</button>
+                    <div class="help-text">Masukkan nama dan nomor HP penerima. Nama akan digunakan untuk personalisasi pesan.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="campaignName">Nama Campaign:</label>
+                    <input type="text" id="campaignName" value="undangan_pernikahan_2025" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="delay">Delay antar pesan (ms):</label>
+                    <input type="number" id="delay" value="3000" min="1000" required>
+                    <div class="help-text">Jeda waktu antar pengiriman pesan dalam milidetik (minimal 1000ms)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="messageTemplate">Template Pesan:</label>
+                    <textarea id="messageTemplate" placeholder="Template pesan Anda...">*Yth. {NAMA}*
+
+Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat, untuk menghadiri acara kami :
+
+Syams Shobahizzaman Alma'shum  & Sonia Nur Fadillah Octavia
+
+Berikut link undangan kami untuk info lengkap dari acara bisa kunjungi :
+
+https://digimo.id/syams-sonia/?to={NAMA_LINK}
+
+Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.
+
+Mohon maaf perihal undangan hanya di bagikan melalui  pesan ini. Terima kasih banyak atas perhatiannya.
+
+Link Map: 
+
+https://maps.app.goo.gl/B8rCsTTvessnCfwbA?g_st=ac
+
+*Wassalamu'alaikum Wr. Wb.*
+
+*Terima Kasih.*</textarea>
+                    <div class="help-text">Gunakan {NAMA} untuk nama penerima dan {NAMA_LINK} untuk nama di URL</div>
+                </div>
+
+                <div class="preview">
+                    <h3>Preview Pesan:</h3>
+                    <div class="preview-message" id="previewMessage">
+                        Masukkan data penerima untuk melihat preview...
+                    </div>
+                </div>
+
+                <button type="submit" class="send-btn" id="sendBtn">
+                    Kirim Pesan Bulk
+                </button>
+
+                <div class="status" id="status"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let recipientCount = 1;
+
+        function addRecipient() {
+            recipientCount++;
+            const container = document.getElementById('recipientsContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'recipient-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Nama (contoh: Mas Budi)" class="recipient-name" required>
+                <input type="text" placeholder="Nomor HP (contoh: 62895341341001)" class="recipient-number" required>
+                <button type="button" class="remove-btn" onclick="removeRecipient(this)">Hapus</button>
+            `;
+            container.appendChild(newRow);
+            updatePreview();
+        }
+
+        function removeRecipient(button) {
+            if (document.querySelectorAll('.recipient-row').length > 1) {
+                button.parentElement.remove();
+                updatePreview();
+            } else {
+                alert('Minimal harus ada satu penerima!');
+            }
+        }
+
+        function updatePreview() {
+            const firstNameInput = document.querySelector('.recipient-name');
+            const template = document.getElementById('messageTemplate').value;
+            
+            if (firstNameInput && firstNameInput.value) {
+                const nama = firstNameInput.value;
+                const namaLink = encodeURIComponent(nama);
+                const preview = template
+                    .replace(/{NAMA}/g, nama)
+                    .replace(/{NAMA_LINK}/g, namaLink);
+                
+                document.getElementById('previewMessage').textContent = preview;
+            } else {
+                document.getElementById('previewMessage').textContent = 'Masukkan data penerima untuk melihat preview...';
+            }
+        }
+
+        // Update preview saat input berubah
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('recipient-name') || e.target.id === 'messageTemplate') {
+                updatePreview();
+            }
+        });
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        document.getElementById('bulkMessageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const sendBtn = document.getElementById('sendBtn');
+            const apiKey = document.getElementById('apiKey').value;
+            const sessionId = document.getElementById('sessionId').value;
+            const campaignName = document.getElementById('campaignName').value;
+            const delay = parseInt(document.getElementById('delay').value);
+            const template = document.getElementById('messageTemplate').value;
+            
+            // Ambil data penerima
+            const recipientRows = document.querySelectorAll('.recipient-row');
+            const recipients = [];
+            const recipientData = [];
+            
+            for (let row of recipientRows) {
+                const nama = row.querySelector('.recipient-name').value.trim();
+                const nomor = row.querySelector('.recipient-number').value.trim();
+                
+                if (!nama || !nomor) {
+                    alert('Semua field nama dan nomor HP harus diisi!');
+                    return;
+                }
+                
+                recipients.push(nomor);
+                recipientData.push({ nama, nomor });
+            }
+            
+            if (recipients.length === 0) {
+                alert('Minimal harus ada satu penerima!');
+                return;
+            }
+            
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Mengirim...';
+            showStatus('Memulai pengiriman pesan...', 'loading');
+            
+            try {
+                // Siapkan pesan untuk setiap penerima
+                for (let i = 0; i < recipientData.length; i++) {
+                    const { nama, nomor } = recipientData[i];
+                    const namaLink = encodeURIComponent(nama);
+                    
+                    // Personalisasi pesan
+                    const personalizedMessage = template
+                        .replace(/{NAMA}/g, nama)
+                        .replace(/{NAMA_LINK}/g, namaLink);
+                    
+                    const payload = {
+                        sessionId: sessionId,
+                        recipients: [nomor],
+                        message: {
+                            type: "template",
+                            content: {
+                                header: "Assalamu'alaikum Wr. Wb",
+                                body: personalizedMessage,
+                                footer: "Sent by WhatsApp API Rizki"
+                            }
+                        },
+                        campaignName: campaignName,
+                        delay: delay
+                    };
+                    
+                    showStatus(`Mengirim ke ${nama} (${i + 1}/${recipientData.length})...`, 'loading');
+                    
+                    const response = await fetch('http://localhost:3000/api/bulk-message/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': apiKey
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log(`Pesan ke ${nama} berhasil:`, result);
+                    
+                    // Jeda antar pengiriman jika bukan pesan terakhir
+                    if (i < recipientData.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+                
+                showStatus(`✅ Berhasil mengirim ${recipientData.length} pesan!`, 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Kirim Pesan Bulk';
+            }
+        });
+
+        // Inisialisasi preview
+        updatePreview();
+    </script>
+</body>
+</html>

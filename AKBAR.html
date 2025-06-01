@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .title {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .qr-code {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .session-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #b8daff;
+            text-align: left;
+        }
+
+        .session-detail {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(12, 84, 96, 0.1);
+        }
+
+        .session-detail:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .session-label {
+            font-weight: 600;
+            color: #0c5460;
+        }
+
+        .session-value {
+            color: #155724;
+            font-weight: 500;
+        }
+
+        .queue-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #0c5460;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        .bot-info {
+            background: #e7f3ff;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #b3d7ff;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🤖 QR Code Generator</h1>
+        
+        <div class="input-group">
+            <label for="botName">Nama Bot:</label>
+            <input type="text" id="botName" placeholder="Masukkan nama bot Anda..." />
+        </div>
+        
+        <div class="input-group">
+            <label for="apiKey">X-API-Key:</label>
+            <input type="password" id="apiKey" placeholder="Masukkan API key Anda..." />
+        </div>
+        
+        <button class="btn" onclick="generateQR()">🔄 Generate QR Code</button>
+        <button class="btn" onclick="checkStatus()" style="background: linear-gradient(45deg, #28a745, #20c997);">📊 Check Status</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Sedang memproses...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <div class="bot-info" id="botInfo"></div>
+            <div class="qr-container" id="qrContainer">
+                <img id="qrCode" class="qr-code" alt="QR Code" />
+            </div>
+            <div class="status" id="status"></div>
+            <div class="session-info" id="sessionInfo" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        
+        async function generateQR() {
+            const botName = document.getElementById('botName').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            
+            if (!botName) {
+                showError('Silakan masukkan nama bot terlebih dahulu!');
+                return;
+            }
+            
+            if (!apiKey) {
+                showError('Silakan masukkan X-API-Key terlebih dahulu!');
+                return;
+            }
+            
+            showLoading(true);
+            hideError();
+            hideResult();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/session/qr/${encodeURIComponent(botName)}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-API-Key': apiKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('API Key tidak valid atau tidak memiliki akses');
+                    } else if (response.status === 403) {
+                        throw new Error('Akses ditolak. Periksa API Key Anda');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status && data.qr) {
+                    displayResult(botName, data);
+                } else {
+                    throw new Error('Data QR code tidak ditemukan dalam response');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Gagal mendapatkan QR code: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function checkStatus() {
+            const botName = document.getElementById('botName').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            
+            if (!botName) {
+                showError('Silakan masukkan nama bot terlebih dahulu!');
+                return;
+            }
+            
+            if (!apiKey) {
+                showError('Silakan masukkan X-API-Key terlebih dahulu!');
+                return;
+            }
+            
+            showLoading(true);
+            hideError();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/status/${encodeURIComponent(botName)}`, {
+                    method: 'GET',
+                    headers: {
+                        'X-API-Key': apiKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('API Key tidak valid atau tidak memiliki akses');
+                    } else if (response.status === 403) {
+                        throw new Error('Akses ditolak. Periksa API Key Anda');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResult(botName, data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Gagal mengecek status: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function displayResult(botName, data) {
+            // Update bot info
+            document.getElementById('botInfo').innerHTML = `
+                <strong>🤖 Bot Name:</strong> ${botName}<br>
+                <strong>📅 Generated:</strong> ${new Date().toLocaleString('id-ID')}
+            `;
+            
+            const qrContainer = document.getElementById('qrContainer');
+            const sessionInfo = document.getElementById('sessionInfo');
+            
+            // Check if response has session data (connected state)
+            if (data.session && data.session.isConnected) {
+                // Hide QR code when connected
+                qrContainer.style.display = 'none';
+                
+                // Show session info
+                sessionInfo.style.display = 'block';
+                sessionInfo.innerHTML = generateSessionInfo(data);
+                
+                // Update status to connected
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status connected';
+                statusDiv.innerHTML = '✅ Status: Bot Terhubung dan Aktif';
+                
+            } else if (data.qr) {
+                // Show QR code when not connected but QR is available
+                qrContainer.style.display = 'block';
+                sessionInfo.style.display = 'none';
+                
+                // Update QR code
+                const qrImg = document.getElementById('qrCode');
+                qrImg.src = data.qr;
+                qrImg.alt = `QR Code untuk ${botName}`;
+                
+                // Update status
+                const statusDiv = document.getElementById('status');
+                if (data.connected) {
+                    statusDiv.className = 'status connected';
+                    statusDiv.innerHTML = '✅ Status: Terhubung';
+                } else {
+                    statusDiv.className = 'status disconnected';
+                    statusDiv.innerHTML = '⏳ Status: Belum Terhubung - Scan QR code dengan WhatsApp Anda';
+                }
+            } else {
+                // No QR code and no session data
+                qrContainer.style.display = 'none';
+                sessionInfo.style.display = 'none';
+                
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status disconnected';
+                statusDiv.innerHTML = '❌ Status: Tidak dapat memuat data';
+            }
+            
+            showResult();
+        }
+        
+        function generateSessionInfo(data) {
+            const session = data.session;
+            const queue = data.queue;
+            
+            let html = `
+                <h3 style="margin-bottom: 15px; color: #0c5460;">📊 Informasi Session</h3>
+                
+                <div class="session-detail">
+                    <span class="session-label">🆔 Session ID:</span>
+                    <span class="session-value">${session.id}</span>
+                </div>
+                
+                <div class="session-detail">
+                    <span class="session-label">🔗 Status:</span>
+                    <span class="session-value">${session.status.toUpperCase()}</span>
+                </div>
+                
+                <div class="session-detail">
+                    <span class="session-label">📡 Connected:</span>
+                    <span class="session-value">${session.isConnected ? '✅ Ya' : '❌ Tidak'}</span>
+                </div>
+                
+                <div class="session-detail">
+                    <span class="session-label">📬 Queue Messages:</span>
+                    <span class="session-value">${session.hasQueuedMessages ? '📨 Ada' : '📭 Kosong'}</span>
+                </div>
+            `;
+            
+            if (queue) {
+                html += `
+                    <h4 style="margin: 20px 0 10px 0; color: #0c5460;">📋 Queue Information</h4>
+                    
+                    <div class="session-detail">
+                        <span class="session-label">📦 Items in Queue:</span>
+                        <span class="session-value">${queue.itemsInQueue}</span>
+                    </div>
+                    
+                    <div class="session-detail">
+                        <span class="session-label">⚙️ Processing:</span>
+                        <span class="session-value">${queue.processing ? '🔄 Ya' : '⏸️ Tidak'}</span>
+                    </div>
+                    
+                    <div class="session-detail">
+                        <span class="session-label">⏰ Last Processed:</span>
+                        <span class="session-value">${queue.lastProcessed || '➖ Belum ada'}</span>
+                    </div>
+                `;
+                
+                if (queue.stats) {
+                    html += `
+                        <h4 style="margin: 20px 0 10px 0; color: #0c5460;">📈 Queue Statistics</h4>
+                        <div class="queue-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">${queue.stats.total}</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">${queue.stats.success}</div>
+                                <div class="stat-label">Success</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">${queue.stats.failed}</div>
+                                <div class="stat-label">Failed</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            return html;
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        function showResult() {
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        function hideResult() {
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+        
+        // Allow Enter key to trigger QR generation
+        document.getElementById('botName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+        
+        document.getElementById('apiKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+        
+        // Auto-focus on input when page loads
+        window.addEventListener('load', function() {
+            document.getElementById('botName').focus();
+        });
+    </script>
+</body>
+</html>
